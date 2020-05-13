@@ -1,0 +1,31 @@
+tree("Root")
+	fallback
+		tree("Walk")
+		tree("Search")
+		tree("Play")
+
+tree("Walk")
+	while 
+		isWalking
+		sequence
+			WalkingAround
+			Wait 3.0
+			Decision
+
+tree("Search")
+	while
+		isHungry
+		while isHungry
+			sequence
+				Searching
+				Wait 1.0
+				Decision
+
+tree("Play")
+	while
+		isPlaying
+		while not isHungry
+			sequence
+				Play
+				Wait 1.0
+				Decision
