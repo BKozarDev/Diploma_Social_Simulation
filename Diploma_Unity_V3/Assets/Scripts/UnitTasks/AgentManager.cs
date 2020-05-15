@@ -18,10 +18,11 @@ public class AgentManager : MonoBehaviour
 
     public bool isLeisure;
     public bool isLeisureGo;
-    public bool decision;
 
     private static int MAX = 50;
     private static int hungryMAX;
+
+    public int hunger;
 
     UnitTasks ut;
     BehaviourManager bm;
@@ -52,6 +53,12 @@ public class AgentManager : MonoBehaviour
         timer = 0;
         time_day = bm.time;
         hungry = hungryMAX;
+        hunger =(int)(hungryMAX * Ph);
+
+        isDecision = true;
+
+        _Ph = 1;
+        _Pp = 1;
     }
 
     private bool isHungry;
@@ -97,6 +104,11 @@ public class AgentManager : MonoBehaviour
     [HideInInspector]
     public float timer;
     private float time_day;
+
+    [HideInInspector]
+    public bool isDecision;
+    private float _Ph;
+    private float _Pp;
     // Update is called once per frame
     void Update()
     {
@@ -109,6 +121,74 @@ public class AgentManager : MonoBehaviour
                 timer = 0;
                 hungry -= 5;
             }
+        }
+
+        if (isDecision)
+        {
+            _Ph *= Ph;
+            _Pp *= Pp;
+
+            if (_Ph >= _Pp)
+            {
+                if (hungry <= hunger)
+                {
+                    if(bm.highnoon)
+                        Eat();
+                }
+
+                Walk();
+                _Pp = 1;
+            }
+            else
+            {
+                var choice = Random.Range(0f, 1f);
+                if (choice > _Pp)
+                {
+                    Walk();
+                }
+                else
+                {
+                    Play();
+                }
+
+                _Ph = 1;
+            }
+        }
+    }
+
+    void Walk()
+    {
+        if (!ut.isHungry)
+        {
+            ut.isWalking = true;
+            isDecision = false;
+        }
+
+    }
+
+    void Play()
+    {
+        ut.isPlaying = true;
+        isDecision = false;
+    }
+
+    void Eat()
+    {
+        if (ut.isWalking)
+            ut.DoneWalk();
+        if (ut.isPlaying)
+            ut.DonePlay();
+        
+        Debug.Log("EATING");
+        ut.isHungry = true;
+        isDecision = false;
+    }
+
+    void Died()
+    {
+        if (health <= 0)
+        {
+            this.gameObject.SetActive(false);
         }
     }
 }

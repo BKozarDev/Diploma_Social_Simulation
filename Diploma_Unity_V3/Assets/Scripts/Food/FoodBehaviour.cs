@@ -79,10 +79,6 @@ public class FoodBehaviour : MonoBehaviour
         }
     }
 
-    private void OnTriggerStay(Collider other) {
-        Debug.Log(other.gameObject.name);
-    }
-
     bool give;
     // private void OnTriggerStay(Collider other)
     // {

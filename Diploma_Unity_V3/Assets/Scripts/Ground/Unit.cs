@@ -40,7 +40,7 @@ public class Unit : MonoBehaviour
 
         while (true)
         {
-            if (transform.position.Equals(currentWP))
+            if (transform.position.Equals(currentWP) || Vector3.Distance(transform.position, currentWP) <= 0.3)
             {
                 tIndex++;
                 if (tIndex >= path.Length)
@@ -51,6 +51,7 @@ public class Unit : MonoBehaviour
                 currentWP = path[tIndex];
             }
 
+            transform.LookAt(currentWP);
             transform.position = Vector3.MoveTowards(transform.position, currentWP, speed * Time.deltaTime);
             yield return null;
         }

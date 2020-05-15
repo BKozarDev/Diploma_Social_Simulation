@@ -29,6 +29,7 @@ public class UnitTasks : MonoBehaviour
         isRandomPos = false;
         doneW = false;
         doneS = false;
+        start = true;
 
         // Getting Components
         unit = GetComponent<Unit>();
@@ -40,12 +41,14 @@ public class UnitTasks : MonoBehaviour
         // python();
     }
 
+    bool start;
     private void LateUpdate()
     {
         // Do Walking Around if isWalking = true
-        if (isWalking && !doneW)
+        if (start && isWalking && !doneW)
         {
             isRandomPos = true;
+            start = false;
         }
 
         if (startTimer)
@@ -53,14 +56,23 @@ public class UnitTasks : MonoBehaviour
             timer += Time.deltaTime;
         }
 
-        if (isHungry && !doneS)
+        // if(isHungry && !start)
+        // {
+        //     Task.current.Succeed();
+        //     DoneWalk();
+        //     DonePlay();
+        // }
+
+        if (start && isHungry && !doneS)
         {
             isPos = true;
+            start = false;
         }
 
-        if (isPlaying && !doneP)
+        if (start && isPlaying && !doneP)
         {
             isPlay = true;
+            start = false;
         }
     }
 
@@ -71,6 +83,7 @@ public class UnitTasks : MonoBehaviour
     bool startTimer;
     float timer;
     #endregion
+    Vector3 targetPos;
     #region walking task
     [Task]
     public void WalkingAround()
@@ -78,27 +91,36 @@ public class UnitTasks : MonoBehaviour
         // Debug.Log("Name of this GameObject: " + grid.gameObject.name);
         if (isRandomPos)
         {
-            var randomPos = grid.GetRandomNode();
-            unit.target.position = randomPos;
-            unit.StartWalking(randomPos);
-
-            transform.LookAt(randomPos);
+            targetPos = grid.GetRandomNode();
+            unit.target.position = targetPos;
+            unit.StartWalking(targetPos);
 
             isRandomPos = false;
             doneW = true;
 
             Wait();
         }
+
         if (Vector3.Distance(transform.position, unit.target.position) <= threshold && doneW || timer > 8)
         {
             Task.current.Succeed();
             doneW = false;
-            isRandomPos = false;
             // am.isProc = false;
 
             am.health += 1;
             am.leisure += 2;
+
+            isWalking = false;
+            start = true;
+            am.isDecision = true;
         }
+    }
+
+    public void DoneWalk()
+    {
+        isWalking = false;
+        start = true;
+        doneW = false;
     }
 
     // This is my method of waiting
@@ -131,11 +153,9 @@ public class UnitTasks : MonoBehaviour
         if (isPos)
         {
             var foodPos = grid.NodeFromWorldPoint(im.GetFoodPos());
-            var pos = foodPos.wPos;
-            unit.target.position = pos;
-            unit.StartWalking(pos);
-
-            transform.LookAt(pos);
+            targetPos = foodPos.wPos;
+            unit.target.position = targetPos;
+            unit.StartWalking(targetPos);
 
             isPos = false;
             doneS = true;
@@ -144,13 +164,22 @@ public class UnitTasks : MonoBehaviour
         if (Vector3.Distance(transform.position, unit.target.position) < threshold)
         {
             doneS = false;
-            isPos = false;
             // am.isProc = false;
             Task.current.Succeed();
 
-            isWalking = true;
             isHungry = false;
+            start = true;
+
+            am.isDecision = true;
         }
+    }
+
+    public void DoneSearch()
+    {
+        isPos = false;
+        start = true;
+        doneS = false;
+        isHungry = false;
     }
     #endregion
 
@@ -158,7 +187,7 @@ public class UnitTasks : MonoBehaviour
     [Task]
     public void Decision()
     {
-        am.decision = true;
+        am.isDecision = true;
         Task.current.Succeed();
     }
     #endregion
@@ -225,9 +254,10 @@ public class UnitTasks : MonoBehaviour
                 playPos = grid.NodeFromWorldPoint(plPos.transform.position);
             }
             unit.target.position = playPos.wPos;
-            unit.StartWalking(playPos.wPos);
+            targetPos = playPos.wPos;
+            unit.StartWalking(targetPos);
 
-            transform.LookAt(playPos.wPos);
+            // transform.LookAt(playPos.wPos);
 
             doneP = true;
 
@@ -240,13 +270,19 @@ public class UnitTasks : MonoBehaviour
         if (Vector3.Distance(transform.position, unit.target.position) < threshold || timer > 8)
         {
             doneP = false;
-            isPlay = false;
             // am.isProc = false;
             Task.current.Succeed();
 
-            isWalking = true;
             isPlaying = false;
+            start = true;
         }
+    }
+
+    public void DonePlay()
+    {
+        doneP = false;
+        isPlaying = false;
+        start = true;
     }
     #endregion
 
