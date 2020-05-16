@@ -14,16 +14,22 @@ public class SympathyManager : MonoBehaviour
         NEUTRAL,
         FRIEND,
         LOVER,
-        WIFE,
+        FAMILY,
+        PARENT
     }
+
+    GenericAlgorythm ga;
 
     private EStates currentState;
 
-    public SympathyManager(GameObject agent_, int pSympathy_)
+    public SympathyManager(GameObject agent_, int pSympathy_, bool parent = false)
     {
         agent = agent_;
         pSympathy = pSympathy_;
-        currentState = EStates.NEUTRAL;
+        if(!parent)
+            currentState = EStates.NEUTRAL;
+        else 
+            currentState = EStates.PARENT;
     }
 
     int max_Sym = 10;
@@ -43,15 +49,24 @@ public class SympathyManager : MonoBehaviour
         }
     }
 
-    public void PlusSym(int plus)
+    [HideInInspector]
+    public bool isHaveABaby;
+
+    public void PlusSym(int plus, bool love, AgentManager mainAgent = null)
     {
         pSympathy += plus;
         if (pSympathy > max_Sym)
         {
-            UpgradeStates();
+            UpgradeStates(love);
             pSympathy = 0;
         }
-        Debug.Log(pSympathy);
+
+        if (currentState == EStates.FAMILY && pSympathy == max_Sym)
+        {
+            isHaveABaby = true;
+            ga = new GenericAlgorythm(mainAgent, agent.GetComponent<AgentManager>());
+            pSympathy = 0;
+        }
     }
 
     bool isTimerStart;
@@ -65,7 +80,6 @@ public class SympathyManager : MonoBehaviour
             time__ = (int)time;
             isTimerStart = true;
         }
-
     }
 
     public void StopTimer()
@@ -74,9 +88,9 @@ public class SympathyManager : MonoBehaviour
         time = 5;
     }
 
-    void UpgradeStates()
+    void UpgradeStates(bool love)
     {
-        if (currentState != EStates.WIFE)
+        if (currentState != EStates.FAMILY)
         {
             switch (currentState)
             {
@@ -85,11 +99,14 @@ public class SympathyManager : MonoBehaviour
                     max_Sym += 5;
                     break;
                 case EStates.FRIEND:
-                    currentState = EStates.LOVER;
-                    max_Sym += 10;
+                    if (!love)
+                    {
+                        currentState = EStates.LOVER;
+                        max_Sym += 10;
+                    }
                     break;
                 case EStates.LOVER:
-                    currentState = EStates.WIFE;
+                    currentState = EStates.FAMILY;
                     max_Sym += 25;
                     break;
             }
@@ -102,7 +119,7 @@ public class SympathyManager : MonoBehaviour
         {
             switch (currentState)
             {
-                case EStates.WIFE:
+                case EStates.FAMILY:
                     currentState = EStates.LOVER;
                     max_Sym -= 25;
                     break;
@@ -132,10 +149,15 @@ public class SympathyManager : MonoBehaviour
             case EStates.LOVER:
                 answer = "Hello, My Lover";
                 break;
-            case EStates.WIFE:
+            case EStates.FAMILY:
                 answer = "Hello, My Darling";
                 break;
+            case EStates.PARENT:
+                answer = "Hello, My Parent!";
+                break;
         }
+
+        answer += "\n level sympathy = " + pSympathy;
 
         return answer;
     }

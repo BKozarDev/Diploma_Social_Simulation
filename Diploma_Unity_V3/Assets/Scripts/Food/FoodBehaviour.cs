@@ -10,7 +10,7 @@ public class FoodBehaviour : MonoBehaviour
     public GameObject foodAsset;
 
     // GameObject agent;
-    public AgentManager am;
+    AgentManager am;
 
     BehaviourManager bm;
     private void Start()

@@ -4,6 +4,9 @@ using UnityEngine;
 
 public class AgentManager : MonoBehaviour
 {
+    public AgentManager parent1;
+    public AgentManager parent2;
+
     public float Ph;
     public float Pp;
 
@@ -26,15 +29,57 @@ public class AgentManager : MonoBehaviour
 
     UnitTasks ut;
     BehaviourManager bm;
+    FieldOfView fov_Look;
+    FieldOfView fov_Near;
 
-    public AgentManager(float Ph, float Pp, int vitality, int endurance, int strength, int gluttony)
+    // List of knowable agents
+    Dictionary<GameObject, SympathyManager> sym_agents;
+
+    // public AgentManager(float Ph, float Pp, int vitality, int endurance, int strength, int gluttony, AgentManager parent1, AgentManager parent2)
+    // {
+    //     this.Ph = Ph;
+    //     this.Pp = Pp;
+    //     this.vitality = vitality;
+    //     this.endurance = endurance;
+    //     this.strength = strength;
+    //     this.gluttony = gluttony;
+
+    //     this.parent1 = parent1;
+    //     this.parent2 = parent2;
+    // }
+
+    public void NewAM(float Ph, float Pp, int vitality, int endurance, int strength, int gluttony, AgentManager parent1, AgentManager parent2)
     {
         this.Ph = Ph;
         this.Pp = Pp;
+
         this.vitality = vitality;
         this.endurance = endurance;
         this.strength = strength;
         this.gluttony = gluttony;
+
+        this.parent1 = parent1;
+        this.parent2 = parent2;
+
+        Unit unit = GetComponent<Unit>();
+        unit.target = GameObject.Instantiate(Resources.Load<GameObject>("Prefabs/Target")).transform;
+
+        InteractableManager im = GetComponent<InteractableManager>();
+        var foods = FindObjectsOfType<FoodBehaviour>();
+        List<GameObject> foodList = new List<GameObject>();
+        foreach (var food in foods)
+        {
+            foodList.Add(food.gameObject);
+        }
+        im.foodDisp = foodList;
+
+        var plays = FindObjectsOfType<PlayBehaviour>();
+        List<GameObject> playList = new List<GameObject>();
+        foreach (var play in plays)
+        {
+            playList.Add(play.gameObject);
+        }
+        im.plesureDisp = playList;
     }
 
     // Start is called before the first frame update
@@ -53,12 +98,25 @@ public class AgentManager : MonoBehaviour
         timer = 0;
         time_day = bm.time;
         hungry = hungryMAX;
-        hunger =(int)(hungryMAX * Ph);
+        hunger = (int)(hungryMAX * Ph);
 
         isDecision = true;
 
         _Ph = 1;
         _Pp = 1;
+
+        // Field of View
+        var fovs = GetComponents<FieldOfView>();
+
+        foreach (var fov in fovs)
+        {
+            if (fov.isNearTarget)
+                fov_Near = fov;
+            else
+                fov_Look = fov;
+        }
+
+        sym_agents = new Dictionary<GameObject, SympathyManager>();
     }
 
     private bool isHungry;
@@ -132,7 +190,7 @@ public class AgentManager : MonoBehaviour
             {
                 if (hungry <= hunger)
                 {
-                    if(bm.highnoon)
+                    if (bm.highnoon)
                         Eat();
                 }
 
@@ -141,6 +199,11 @@ public class AgentManager : MonoBehaviour
             }
             else
             {
+                if (hungry <= hunger)
+                {
+                    if (bm.highnoon)
+                        Eat();
+                }
                 var choice = Random.Range(0f, 1f);
                 if (choice > _Pp)
                 {
@@ -154,8 +217,63 @@ public class AgentManager : MonoBehaviour
                 _Ph = 1;
             }
         }
+
+        if(fov_Look.visibleTargets.Count > 0)
+        {
+            var fov_List = fov_Look.visibleTargets;
+            foreach(var agent in fov_List)
+            {
+                if(sym_agents.ContainsKey(agent))
+                {
+                    // Debug.Log("Yes!");
+                    //Do something
+                } else 
+                {
+                    sym_agents.Add(agent, new SympathyManager(agent, 0));
+                    // Debug.Log("Added");
+                }
+            }
+        }
+
+        if(fov_Near.visibleTargets.Count > 0)
+        {
+            var fov_List = fov_Near.visibleTargets;
+            foreach(var agent in fov_List)
+            {
+                if(sym_agents.ContainsKey(agent))
+                {
+                    if(!isNear)
+                    {
+                        AddedSympathy(agent, 5);
+                        isNear = true;
+                        Debug.Log(sym_agents[agent].ToString());
+
+                        if(sym_agents[agent].isHaveABaby)
+                        {
+
+                        }
+                    }
+                }
+            }
+        } else 
+        {
+            isNear = false;
+        }
+
+        if (health <= 0)
+        {
+            Died();
+        }
     }
 
+    bool isNear;
+    GameObject lover;
+    delegate bool Love(GameObject l);
+    void AddedSympathy(GameObject agent, int count)
+    {
+        Love love = l => l != null;
+        sym_agents[agent].PlusSym(count, love(lover), this);
+    }
     void Walk()
     {
         if (!ut.isHungry)
@@ -178,7 +296,7 @@ public class AgentManager : MonoBehaviour
             ut.DoneWalk();
         if (ut.isPlaying)
             ut.DonePlay();
-        
+
         Debug.Log("EATING");
         ut.isHungry = true;
         isDecision = false;
@@ -186,9 +304,6 @@ public class AgentManager : MonoBehaviour
 
     void Died()
     {
-        if (health <= 0)
-        {
-            this.gameObject.SetActive(false);
-        }
+        this.gameObject.SetActive(false);
     }
 }
