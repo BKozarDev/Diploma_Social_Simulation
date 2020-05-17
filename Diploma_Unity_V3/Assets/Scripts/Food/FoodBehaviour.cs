@@ -79,6 +79,38 @@ public class FoodBehaviour : MonoBehaviour
         }
     }
 
+    bool isGive;
+    private void OnTriggerStay(Collider other)
+    {
+        if (other.tag.Equals("Agent") && bm.highnoon)
+        {
+            if (!isGive)
+            {
+                am = other.GetComponent<AgentManager>();
+                Debug.Log(other.name + ": " + am.hungry + "; " + am.health);
+                //Do Something Good
+                am.hungry += 25;
+                am.health += health;
+                am.leisure += pleasure;
+                am.timer = 0;
+
+                am.strength += 2;
+
+                eat = true;
+
+                isGive = true;
+            }
+        }
+    }
+
+    private void OnTriggerExit(Collider other)
+    {
+        if (other.tag.Equals("Agent") && bm.highnoon)
+        {
+            isGive = false;
+        }
+    }
+
     bool give;
     // private void OnTriggerStay(Collider other)
     // {

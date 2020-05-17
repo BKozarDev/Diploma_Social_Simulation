@@ -42,12 +42,12 @@ public class UnitTasks : MonoBehaviour
     }
 
     bool start;
-    private void LateUpdate()
+    private void Update()
     {
         // Do Walking Around if isWalking = true
         if (start && isWalking && !doneW)
         {
-            isRandomPos = true;
+            // isRandomPos = true;
             start = false;
         }
 
@@ -56,29 +56,22 @@ public class UnitTasks : MonoBehaviour
             timer += Time.deltaTime;
         }
 
-        // if(isHungry && !start)
-        // {
-        //     Task.current.Succeed();
-        //     DoneWalk();
-        //     DonePlay();
-        // }
-
         if (start && isHungry && !doneS)
         {
-            isPos = true;
+            // isPos = true;
             start = false;
         }
 
         if (start && isPlaying && !doneP)
         {
-            isPlay = true;
+            // isPlay = true;
             start = false;
         }
     }
 
     #region walking values and bools
     float threshold = 1.51f;
-    bool isRandomPos;
+    public bool isRandomPos;
     bool doneW;
     bool startTimer;
     float timer;
@@ -88,9 +81,9 @@ public class UnitTasks : MonoBehaviour
     [Task]
     public void WalkingAround()
     {
-        // Debug.Log("Name of this GameObject: " + grid.gameObject.name);
         if (isRandomPos)
         {
+            Debug.Log("Walk");
             targetPos = grid.GetRandomNode();
             unit.target.position = targetPos;
             unit.StartWalking(targetPos);
@@ -98,14 +91,13 @@ public class UnitTasks : MonoBehaviour
             isRandomPos = false;
             doneW = true;
 
-            Wait();
+            // Wait();
         }
 
         if (Vector3.Distance(transform.position, unit.target.position) <= threshold && doneW || timer > 8)
         {
             Task.current.Succeed();
             doneW = false;
-            // am.isProc = false;
 
             am.health += 1;
             am.leisure += 2;
@@ -113,6 +105,8 @@ public class UnitTasks : MonoBehaviour
             isWalking = false;
             start = true;
             am.isDecision = true;
+
+            isRandomPos = false;
         }
     }
 
@@ -138,7 +132,7 @@ public class UnitTasks : MonoBehaviour
 
     #region searching values and bools
     bool doneS;
-    bool isPos;
+    public bool isPos;
     #endregion
     #region searching task
     [Task]
@@ -164,13 +158,14 @@ public class UnitTasks : MonoBehaviour
         if (Vector3.Distance(transform.position, unit.target.position) < threshold)
         {
             doneS = false;
-            // am.isProc = false;
             Task.current.Succeed();
 
             isHungry = false;
             start = true;
 
             am.isDecision = true;
+
+            isPos = false;
         }
     }
 
@@ -194,7 +189,7 @@ public class UnitTasks : MonoBehaviour
 
     #region playing values and bools
     bool doneP;
-    bool isPlay;
+    public bool isPlay;
     #endregion
     #region playing task
     [Task]
@@ -202,79 +197,29 @@ public class UnitTasks : MonoBehaviour
     {
         if (isPlay)
         {
-            Node playPos;
-            if (am.isLeisure)
-            {
-                var __l = im.plesureDisp[0].GetComponent<PlayBehaviour>().pleasure;
-                var currentPlayZone = im.plesureDisp[0];
-                foreach (var zone in im.plesureDisp)
-                {
-                    var play = zone.GetComponent<PlayBehaviour>();
-                    var __h = play.health;
-                    if (play.pleasure > __l && (am.health + __h - 8) > 0)
-                    {
-                        __l = play.pleasure;
-                        currentPlayZone = zone;
-                    }
-                }
+            var playPos = grid.NodeFromWorldPoint(im.GetPlayPos());
 
-                playPos = grid.NodeFromWorldPoint(currentPlayZone.transform.position);
-                am.isLeisure = false;
-            }
-            else
-            {
-                System.Random rnd = new System.Random();
-                int r = rnd.Next(im.plesureDisp.Count);
-
-                var doublesPlesure = new List<GameObject>(im.plesureDisp);
-
-                var plParam = doublesPlesure[r].GetComponent<PlayBehaviour>();
-                var plPos = doublesPlesure[r];
-                var res = am.health + plParam.health;
-                Debug.Log(" Health: " + res);
-                Debug.Log("Position: " + plPos.transform.position);
-                while ((am.health + plParam.health + 8) < 0)
-                {
-                    doublesPlesure.RemoveAt(r);
-                    if (doublesPlesure.Count == 0)
-                    {
-                        Task.current.Succeed();
-                        break;
-                    }
-                    else
-                    {
-                        r = rnd.Next(doublesPlesure.Count);
-                        plParam = doublesPlesure[r].GetComponent<PlayBehaviour>();
-                        plPos = doublesPlesure[r];
-                    }
-
-                    Debug.Log("Position: " + plPos.transform.position);
-                }
-
-                playPos = grid.NodeFromWorldPoint(plPos.transform.position);
-            }
-            unit.target.position = playPos.wPos;
             targetPos = playPos.wPos;
+            unit.target.position = targetPos;
             unit.StartWalking(targetPos);
 
-            // transform.LookAt(playPos.wPos);
-
+            isPlay = false;
             doneP = true;
 
-            // Debug.Log("Position: " + playPos.wPos);
-            isPlay = false;
-
-            Wait();
+            // Wait();
         }
 
         if (Vector3.Distance(transform.position, unit.target.position) < threshold || timer > 8)
         {
             doneP = false;
-            // am.isProc = false;
             Task.current.Succeed();
 
-            isPlaying = false;
+            isPlaying = false;  
             start = true;
+
+            am.isDecision = true;
+
+            isPlay = false;
         }
     }
 

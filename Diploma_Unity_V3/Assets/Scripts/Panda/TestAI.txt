@@ -7,11 +7,10 @@ tree("Root")
 tree("Walk")
 	while 
 		isWalking
-		while not isHungry
-			sequence
-				WalkingAround
-				Wait 3.0
-				Decision
+		sequence
+			WalkingAround
+			Wait 3.0
+			Decision
 
 tree("Search")
 	while
@@ -24,8 +23,7 @@ tree("Search")
 tree("Play")
 	while
 		isPlaying
-		while not isHungry
-			sequence
-				Play
-				Wait 1.0
-				Decision
+		sequence
+			Play
+			Wait 1.0
+			Decision

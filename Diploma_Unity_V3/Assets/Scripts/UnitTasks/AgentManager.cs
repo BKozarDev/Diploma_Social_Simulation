@@ -48,7 +48,7 @@ public class AgentManager : MonoBehaviour
     //     this.parent2 = parent2;
     // }
 
-    public void NewAM(float Ph, float Pp, int vitality, int endurance, int strength, int gluttony, AgentManager parent1, AgentManager parent2)
+    public void NewAM(float Ph, float Pp, int vitality, int endurance, int strength, int gluttony, AgentManager parent1 = null, AgentManager parent2 = null)
     {
         this.Ph = Ph;
         this.Pp = Pp;
@@ -79,7 +79,7 @@ public class AgentManager : MonoBehaviour
         {
             playList.Add(play.gameObject);
         }
-        im.plesureDisp = playList;
+        im.pleasureDisp = playList;
     }
 
     // Start is called before the first frame update
@@ -165,8 +165,11 @@ public class AgentManager : MonoBehaviour
 
     [HideInInspector]
     public bool isDecision;
-    private float _Ph;
-    private float _Pp;
+    [Header("Ph Pp")]
+    // [HideInInspector]
+    public float _Ph;
+    // [HideInInspector]
+    public float _Pp;
     // Update is called once per frame
     void Update()
     {
@@ -205,14 +208,12 @@ public class AgentManager : MonoBehaviour
                         Eat();
                 }
                 var choice = Random.Range(0f, 1f);
-                if (choice > _Pp)
-                {
-                    Walk();
-                }
-                else
+                if(choice < _Pp && health > (int)(MAX * 0.3f))
                 {
                     Play();
                 }
+
+                Walk();
 
                 _Ph = 1;
             }
@@ -278,16 +279,25 @@ public class AgentManager : MonoBehaviour
     {
         if (!ut.isHungry)
         {
-            ut.isWalking = true;
+            if(ut.isPlaying)
+                ut.DonePlay();
+
             isDecision = false;
+            ut.isRandomPos = true;
+            ut.isWalking = true;
         }
 
     }
 
     void Play()
     {
-        ut.isPlaying = true;
+        if(ut.isWalking)
+            ut.DoneWalk();
+
         isDecision = false;
+        isLeisureGo = true;
+        ut.isPlaying = true;
+        ut.isPlay = true;
     }
 
     void Eat()
@@ -297,9 +307,9 @@ public class AgentManager : MonoBehaviour
         if (ut.isPlaying)
             ut.DonePlay();
 
-        Debug.Log("EATING");
-        ut.isHungry = true;
         isDecision = false;
+        ut.isHungry = true;
+        ut.isPos = true;
     }
 
     void Died()

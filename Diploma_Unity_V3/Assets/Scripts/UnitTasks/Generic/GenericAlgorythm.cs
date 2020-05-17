@@ -56,6 +56,8 @@ public class GenericAlgorythm : MonoBehaviour
 
     public GameObject child;
 
+    Grid grid;
+
     public GenericAlgorythm(AgentManager parent1, AgentManager parent2)
     {
         this.pStats1 = new AgentParent(parent1.vitality, parent1.endurance, parent1.strength, parent1.gluttony, parent1.Ph, parent1.Pp, parent1.gameObject.transform.position);
@@ -65,6 +67,22 @@ public class GenericAlgorythm : MonoBehaviour
         this.parent2 = parent2;
 
         CreateChild();
+    }
+
+    public GenericAlgorythm(int vitality, int endurance, int strength, int gluttony, float ph, float pp, string name)
+    {
+        grid = FindObjectOfType<Grid>();
+        CreateChild(vitality, endurance, strength, gluttony, ph, pp, name);
+    }
+
+    void CreateChild(int vitality, int endurance, int strength, int gluttony, float ph, float pp, string name)
+    {
+        GameObject newBorn = (GameObject)Instantiate(Resources.Load<GameObject>("Prefabs/Agent"));
+        newBorn.transform.position = grid.GetRandomNode();
+
+        newBorn.name = name;
+        newBorn.AddComponent(typeof(AgentManager));
+        newBorn.GetComponent<AgentManager>().NewAM(ph, pp, vitality, endurance, strength, gluttony);
     }
 
     void CreateChild()
