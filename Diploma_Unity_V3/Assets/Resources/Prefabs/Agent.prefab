@@ -19,6 +19,7 @@ GameObject:
   - component: {fileID: 6898846231332460235}
   - component: {fileID: 6882482765751607604}
   - component: {fileID: 8885801521222111112}
+  - component: {fileID: 2941386667205245761}
   m_Layer: 10
   m_Name: Agent
   m_TagString: Agent
@@ -153,6 +154,9 @@ MonoBehaviour:
   isWalking: 0
   isHungry: 0
   isPlaying: 0
+  isRandomPos: 0
+  isPos: 0
+  isPlay: 0
 --- !u!114 &8000179353107756421
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -225,6 +229,16 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   foodDisp:
   - {fileID: 0}
-  plesureDisp:
-  - {fileID: 0}
-  - {fileID: 0}
+  pleasureDisp: []
+--- !u!114 &2941386667205245761
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8424625680854788671}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 059c2e741e8a58448ae5cbb903fd07ea, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 

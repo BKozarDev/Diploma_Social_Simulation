@@ -18,6 +18,12 @@ public class SympathyManager : MonoBehaviour
         PARENT
     }
 
+    public enum ERelationStates
+    {
+        GOOD,
+        BAD
+    }
+
     GenericAlgorythm ga;
 
     private EStates currentState;
@@ -64,9 +70,13 @@ public class SympathyManager : MonoBehaviour
         if (currentState == EStates.FAMILY && pSympathy == max_Sym)
         {
             isHaveABaby = true;
-            ga = new GenericAlgorythm(mainAgent, agent.GetComponent<AgentManager>());
             pSympathy = 0;
         }
+    }
+
+    public void CreateBaby(AgentManager mainAgent)
+    {
+        ga = new GenericAlgorythm(mainAgent, agent.GetComponent<AgentManager>());
     }
 
     bool isTimerStart;
@@ -160,5 +170,24 @@ public class SympathyManager : MonoBehaviour
         answer += "\n level sympathy = " + pSympathy;
 
         return answer;
+    }
+
+    public int GetID()
+    {
+        switch (currentState)
+        {
+            case EStates.NEUTRAL:
+                return 0;
+            case EStates.FRIEND:
+                return 1;
+            case EStates.LOVER:
+                return 2;
+            case EStates.FAMILY:
+                return 3;
+            case EStates.PARENT:
+                return 4;
+            default:
+                return -1;
+        }
     }
 }

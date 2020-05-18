@@ -20,32 +20,54 @@ public class MenuManager : MonoBehaviour
 
     GenericAlgorythm ga;
 
-    private void Start() {
+    public GameObject menu;
+
+    private void Start()
+    {
         input_Vitality = GameObject.Find("Vitality_Input").GetComponent<InputField>();
         input_Endurance = GameObject.Find("Endurance_Input").GetComponent<InputField>();
-        input_Strength = GameObject.Find("Strength_Input").GetComponent<InputField>(); 
+        input_Strength = GameObject.Find("Strength_Input").GetComponent<InputField>();
         input_Gluttony = GameObject.Find("Gluttony_Input").GetComponent<InputField>();
 
         input_Ph = GameObject.Find("Ph_Input").GetComponent<InputField>();
         input_Pp = GameObject.Find("Pp_Input").GetComponent<InputField>();
         input_Name = GameObject.Find("Name_Input").GetComponent<InputField>();
 
+        UI.SetActive(false);
+
         ga = GetComponent<GenericAlgorythm>();
     }
 
     bool isHide;
-    private void Update() {
-        if(Input.GetKeyDown(KeyCode.Escape))
+    private void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.Escape))
         {
-            if(!isHide)
+            if (!isHide)
             {
                 UI.SetActive(false);
                 isHide = true;
-            } else
+            }
+            else
             {
                 UI.SetActive(true);
                 isHide = false;
             }
+        }
+    }
+
+    private void LateUpdate()
+    {
+        if (UI.active)
+        {
+            input_Vitality = GameObject.Find("Vitality_Input").GetComponent<InputField>();
+            input_Endurance = GameObject.Find("Endurance_Input").GetComponent<InputField>();
+            input_Strength = GameObject.Find("Strength_Input").GetComponent<InputField>();
+            input_Gluttony = GameObject.Find("Gluttony_Input").GetComponent<InputField>();
+
+            input_Ph = GameObject.Find("Ph_Input").GetComponent<InputField>();
+            input_Pp = GameObject.Find("Pp_Input").GetComponent<InputField>();
+            input_Name = GameObject.Find("Name_Input").GetComponent<InputField>();
         }
     }
 
@@ -66,11 +88,27 @@ public class MenuManager : MonoBehaviour
         strength = int.Parse(input_Strength.text);
         gluttony = int.Parse(input_Gluttony.text);
 
-        ph = (float) int.Parse(input_Ph.text) / 100f;
-        pp = (float) int.Parse(input_Pp.text) / 100f;
+        ph = (float)int.Parse(input_Ph.text) / 100f;
+        pp = (float)int.Parse(input_Pp.text) / 100f;
 
         name = input_Name.text;
 
         ga = new GenericAlgorythm(vitality, endurance, strength, gluttony, ph, pp, name);
+
+        UI.SetActive(false);
+        ToNull();
+    }
+
+    private void ToNull()
+    {
+        input_Vitality.text = "";
+        input_Endurance.text = "";
+        input_Strength.text = "";
+        input_Gluttony.text = "";
+
+        input_Ph.text = "";
+        input_Pp.text = "";
+
+        input_Name.text = "";
     }
 }

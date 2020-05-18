@@ -117,6 +117,8 @@ public class AgentManager : MonoBehaviour
         }
 
         sym_agents = new Dictionary<GameObject, SympathyManager>();
+        goodAgents = new List<GameObject>();
+        badAgents = new List<GameObject>();
     }
 
     private bool isHungry;
@@ -208,7 +210,7 @@ public class AgentManager : MonoBehaviour
                         Eat();
                 }
                 var choice = Random.Range(0f, 1f);
-                if(choice < _Pp && health > (int)(MAX * 0.3f))
+                if (choice < _Pp && health > (int)(MAX * 0.3f))
                 {
                     Play();
                 }
@@ -219,16 +221,49 @@ public class AgentManager : MonoBehaviour
             }
         }
 
-        if(fov_Look.visibleTargets.Count > 0)
+        if (fov_Look.visibleTargets.Count > 0)
         {
             var fov_List = fov_Look.visibleTargets;
-            foreach(var agent in fov_List)
+            foreach (var agent in fov_List)
             {
-                if(sym_agents.ContainsKey(agent))
+                if (sym_agents.ContainsKey(agent))
                 {
-                    // Debug.Log("Yes!");
-                    //Do something
-                } else 
+                    var id = sym_agents[agent].GetID();
+                    CompareAgents(agent);
+
+                    if (goodAgents.Count != 0 || badAgents.Count != 0)
+                    {
+                        if (goodAgents.Count >= badAgents.Count)
+                        {
+                            var newPh = 0f;
+                            var newPp = 0f;
+                            foreach (var ga in goodAgents)
+                            {
+                                var ga_am = ga.GetComponent<AgentManager>();
+                                newPh += ga_am.Ph;
+                                newPp += ga_am.Pp;
+                            }
+
+                            Ph = newPh / goodAgents.Count;
+                            Pp = newPp / goodAgents.Count;
+                        }
+                        else
+                        {
+                            var newPh = 0f;
+                            var newPp = 0f;
+                            foreach (var ba in badAgents)
+                            {
+                                var ba_am = ba.GetComponent<AgentManager>();
+                                newPh += ba_am.Ph;
+                                newPp += ba_am.Pp;
+                            }
+
+                            Ph = newPh / badAgents.Count;
+                            Pp = newPp / badAgents.Count;
+                        }
+                    }
+                }
+                else
                 {
                     sym_agents.Add(agent, new SympathyManager(agent, 0));
                     // Debug.Log("Added");
@@ -236,27 +271,30 @@ public class AgentManager : MonoBehaviour
             }
         }
 
-        if(fov_Near.visibleTargets.Count > 0)
+        if (fov_Near.visibleTargets.Count > 0)
         {
             var fov_List = fov_Near.visibleTargets;
-            foreach(var agent in fov_List)
+            foreach (var agent in fov_List)
             {
-                if(sym_agents.ContainsKey(agent))
+                if (sym_agents.ContainsKey(agent))
                 {
-                    if(!isNear)
+                    if (!isNear)
                     {
                         AddedSympathy(agent, 5);
                         isNear = true;
                         Debug.Log(sym_agents[agent].ToString());
 
-                        if(sym_agents[agent].isHaveABaby)
-                        {
+                        var id = sym_agents[agent].GetID();
 
+                        if (sym_agents[agent].isHaveABaby && (id == 3 || id == 4))
+                        {
+                            sym_agents[agent].CreateBaby(this);
                         }
                     }
                 }
             }
-        } else 
+        }
+        else
         {
             isNear = false;
         }
@@ -267,19 +305,55 @@ public class AgentManager : MonoBehaviour
         }
     }
 
+    List<GameObject> goodAgents;
+    List<GameObject> badAgents;
+    private void CompareAgents(GameObject agent)
+    {
+        var goodPoint = 0;
+        var badPoint = 0;
+        var agentStats = agent.GetComponent<AgentManager>();
+        if (agentStats.Ph >= Ph && sym_agents[agent].GetID() >= 1)
+        {
+            if (agentStats.vitality > vitality)
+                goodPoint++;
+            else
+                badPoint++;
+            if (agentStats.endurance > endurance)
+                goodPoint++;
+            else
+                badPoint++;
+            if (agentStats.strength > strength)
+                goodPoint += 2;
+            else
+                badPoint += 2;
+            var result = goodPoint - badPoint;
+            if (result > 0)
+            {
+                if (!goodAgents.Contains(agent))
+                    goodAgents.Add(agent);
+            }
+            else
+            {
+                if (!badAgents.Contains(agent))
+                    badAgents.Add(agent);
+            }
+
+        }
+    }
+
     bool isNear;
     GameObject lover;
     delegate bool Love(GameObject l);
     void AddedSympathy(GameObject agent, int count)
     {
         Love love = l => l != null;
-        sym_agents[agent].PlusSym(count, love(lover), this);
+        sym_agents[agent].PlusSym(count, love(lover));
     }
     void Walk()
     {
         if (!ut.isHungry)
         {
-            if(ut.isPlaying)
+            if (ut.isPlaying)
                 ut.DonePlay();
 
             isDecision = false;
@@ -291,7 +365,7 @@ public class AgentManager : MonoBehaviour
 
     void Play()
     {
-        if(ut.isWalking)
+        if (ut.isWalking)
             ut.DoneWalk();
 
         isDecision = false;

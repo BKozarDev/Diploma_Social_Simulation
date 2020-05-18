@@ -15,4 +15,12 @@ public class RandomValues : MonoBehaviour
     {
         iField.text = Random.Range(1, 99).ToString();
     }
+
+    public string[] names;
+    public void SetName()
+    {
+        var random = Random.Range(0, names.Length-1);
+
+        iField.text = names[random];
+    }
 }
