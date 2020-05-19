@@ -12,7 +12,8 @@ public class BehaviourManager : MonoBehaviour
 
     public float time; // Current Time
     int timeInt;
-    int dayTime; // Max day time
+    [HideInInspector]
+    public int dayTime; // Max day time
     float __time; // Delay for text
     float __timeHigh; // It's hiiighnooon
 

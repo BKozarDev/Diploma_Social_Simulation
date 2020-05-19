@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class AgentManager : MonoBehaviour
 {
@@ -26,6 +27,9 @@ public class AgentManager : MonoBehaviour
     private static int hungryMAX;
 
     public int hunger;
+
+    [SerializeField]
+    private TextMesh name;
 
     UnitTasks ut;
     BehaviourManager bm;
@@ -72,6 +76,7 @@ public class AgentManager : MonoBehaviour
             foodList.Add(food.gameObject);
         }
         im.foodDisp = foodList;
+        foodList.Clear();
 
         var plays = FindObjectsOfType<PlayBehaviour>();
         List<GameObject> playList = new List<GameObject>();
@@ -80,6 +85,8 @@ public class AgentManager : MonoBehaviour
             playList.Add(play.gameObject);
         }
         im.pleasureDisp = playList;
+
+        playList.Clear();
     }
 
     // Start is called before the first frame update
@@ -95,8 +102,9 @@ public class AgentManager : MonoBehaviour
         // Hungry
         isStartHungry = true;
 
-        timer = 0;
-        time_day = bm.time;
+        time_day = bm.dayTime;
+        time_MAX = time_day / 4f;
+        timer = time_MAX;
         hungry = hungryMAX;
         hunger = (int)(hungryMAX * Ph);
 
@@ -119,6 +127,10 @@ public class AgentManager : MonoBehaviour
         sym_agents = new Dictionary<GameObject, SympathyManager>();
         goodAgents = new List<GameObject>();
         badAgents = new List<GameObject>();
+
+        // UI
+        name = this.gameObject.GetComponentInChildren<TextMesh>();
+        name.text = gameObject.name;
     }
 
     private bool isHungry;
@@ -161,7 +173,7 @@ public class AgentManager : MonoBehaviour
     }
 
     private bool isStartHungry;
-    [HideInInspector]
+    // [HideInInspector]
     public float timer;
     private float time_day;
 
@@ -173,18 +185,31 @@ public class AgentManager : MonoBehaviour
     // [HideInInspector]
     public float _Pp;
     // Update is called once per frame
+    [HideInInspector]
+    public bool isEnter;
+    [HideInInspector]
+    public bool isGive;
+
+    public float time_MAX;
     void Update()
     {
         if (isStartHungry)
         {
-            timer += Time.deltaTime;
+            timer -= Time.deltaTime;
 
-            if (timer >= time_day / 4)
+            if (timer <= 0)
             {
-                timer = 0;
-                hungry -= 5;
+                timer = time_MAX;
+                hungry -= 2;
             }
         }
+
+        if (hungry < 0)
+        {
+            hungry = 0;
+        }
+
+        // Decision part
 
         if (isDecision)
         {
@@ -197,29 +222,48 @@ public class AgentManager : MonoBehaviour
                 {
                     if (bm.highnoon)
                         Eat();
+                    else
+                        Walk();
+                }
+                else
+                {
+                    Walk();
                 }
 
-                Walk();
                 _Pp = 1;
             }
             else
             {
+                var choice = Random.Range(0f, 1f);
                 if (hungry <= hunger)
                 {
-                    if (bm.highnoon)
-                        Eat();
+                    if (!isEnter)
+                    {
+                        if (bm.highnoon)
+                        {
+                            Eat();
+                        }
+                        else
+                            Walk();
+                    } else 
+                    {
+                        Walk();
+                    }
                 }
-                var choice = Random.Range(0f, 1f);
-                if (choice < _Pp && health > (int)(MAX * 0.3f))
+                else if (choice > _Pp)
+                {
+                    Walk();
+                }
+                else if (choice < _Pp && health > (int)(MAX * 0.3f))
                 {
                     Play();
                 }
 
-                Walk();
-
                 _Ph = 1;
             }
         }
+
+        // Look
 
         if (fov_Look.visibleTargets.Count > 0)
         {
@@ -342,25 +386,24 @@ public class AgentManager : MonoBehaviour
     }
 
     bool isNear;
-    GameObject lover;
+    [HideInInspector]
+    public GameObject lover;
     delegate bool Love(GameObject l);
     void AddedSympathy(GameObject agent, int count)
     {
         Love love = l => l != null;
-        sym_agents[agent].PlusSym(count, love(lover));
+        sym_agents[agent].PlusSym(count, love(lover), this);
     }
     void Walk()
     {
-        if (!ut.isHungry)
-        {
-            if (ut.isPlaying)
-                ut.DonePlay();
+        if (ut.isPlaying)
+            ut.DonePlay();
 
-            isDecision = false;
-            ut.isRandomPos = true;
-            ut.isWalking = true;
-        }
+        isDecision = false;
+        ut.isRandomPos = true;
+        ut.isWalking = true;
 
+        Debug.Log("WALK");
     }
 
     void Play()
@@ -382,8 +425,8 @@ public class AgentManager : MonoBehaviour
             ut.DonePlay();
 
         isDecision = false;
-        ut.isHungry = true;
         ut.isPos = true;
+        ut.isHungry = true;
     }
 
     void Died()

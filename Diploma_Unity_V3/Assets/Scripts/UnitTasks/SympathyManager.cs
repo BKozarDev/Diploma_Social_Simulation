@@ -32,10 +32,12 @@ public class SympathyManager : MonoBehaviour
     {
         agent = agent_;
         pSympathy = pSympathy_;
-        if(!parent)
+        if (!parent)
             currentState = EStates.NEUTRAL;
-        else 
+        else
             currentState = EStates.PARENT;
+
+        countBabiesMAX = Random.Range(0, 2);
     }
 
     int max_Sym = 10;
@@ -67,6 +69,11 @@ public class SympathyManager : MonoBehaviour
             pSympathy = 0;
         }
 
+        if(currentState == EStates.LOVER)
+        {
+            mainAgent.lover = agent;
+        }
+
         if (currentState == EStates.FAMILY && pSympathy == max_Sym)
         {
             isHaveABaby = true;
@@ -74,9 +81,15 @@ public class SympathyManager : MonoBehaviour
         }
     }
 
+    int countBabies;
+    int countBabiesMAX;
     public void CreateBaby(AgentManager mainAgent)
     {
-        ga = new GenericAlgorythm(mainAgent, agent.GetComponent<AgentManager>());
+        if (countBabies < countBabiesMAX)
+        {
+            ga = new GenericAlgorythm(mainAgent, agent.GetComponent<AgentManager>());
+            countBabies++;
+        }
     }
 
     bool isTimerStart;

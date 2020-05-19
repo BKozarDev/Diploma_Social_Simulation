@@ -7,7 +7,8 @@ public class RandomValues : MonoBehaviour
 {
     InputField iField;
 
-    private void Start() {
+    private void Start()
+    {
         iField = GetComponent<InputField>();
     }
 
@@ -19,8 +20,13 @@ public class RandomValues : MonoBehaviour
     public string[] names;
     public void SetName()
     {
-        var random = Random.Range(0, names.Length-1);
+        var random = Random.Range(0, names.Length - 1);
 
         iField.text = names[random];
+    }
+
+    public string GetRandomName()
+    {
+        return names[Random.Range(0, names.Length - 1)];
     }
 }

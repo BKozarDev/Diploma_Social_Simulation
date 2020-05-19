@@ -21,6 +21,8 @@ public class UnitTasks : MonoBehaviour
     InteractableManager im;
     AgentManager am;
 
+    BehaviourManager bm;
+
     Transform lookAtPos;
 
     private void Start()
@@ -36,6 +38,7 @@ public class UnitTasks : MonoBehaviour
         im = GetComponent<InteractableManager>();
         am = GetComponent<AgentManager>();
         grid = FindObjectOfType<Grid>();
+        bm = FindObjectOfType<BehaviourManager>();
 
         // Python programs
         // python();
@@ -47,7 +50,7 @@ public class UnitTasks : MonoBehaviour
         // Do Walking Around if isWalking = true
         if (start && isWalking && !doneW)
         {
-            // isRandomPos = true;
+            isRandomPos = true;
             start = false;
         }
 
@@ -58,13 +61,13 @@ public class UnitTasks : MonoBehaviour
 
         if (start && isHungry && !doneS)
         {
-            // isPos = true;
+            isPos = true;
             start = false;
         }
 
         if (start && isPlaying && !doneP)
         {
-            // isPlay = true;
+            isPlay = true;
             start = false;
         }
     }
@@ -81,6 +84,12 @@ public class UnitTasks : MonoBehaviour
     [Task]
     public void WalkingAround()
     {
+        if(!start)
+        {
+            start = true;
+            doneW = false;
+        }
+
         if (isRandomPos)
         {
             Debug.Log("Walk");
@@ -91,7 +100,7 @@ public class UnitTasks : MonoBehaviour
             isRandomPos = false;
             doneW = true;
 
-            // Wait();
+            Wait();
         }
 
         if (Vector3.Distance(transform.position, unit.target.position) <= threshold && doneW || timer > 8)
@@ -105,8 +114,6 @@ public class UnitTasks : MonoBehaviour
             isWalking = false;
             start = true;
             am.isDecision = true;
-
-            isRandomPos = false;
         }
     }
 
@@ -115,6 +122,7 @@ public class UnitTasks : MonoBehaviour
         isWalking = false;
         start = true;
         doneW = false;
+        isRandomPos = false;
     }
 
     // This is my method of waiting
@@ -144,6 +152,12 @@ public class UnitTasks : MonoBehaviour
     [Task]
     public void Searching()
     {
+        if (!start)
+        {
+            start = true;
+            doneS = false;
+        }
+
         if (isPos)
         {
             var foodPos = grid.NodeFromWorldPoint(im.GetFoodPos());
@@ -165,7 +179,15 @@ public class UnitTasks : MonoBehaviour
 
             am.isDecision = true;
 
-            isPos = false;
+            am.timer = 0;
+        }
+
+        if(!bm.highnoon)
+        {
+            Task.current.Succeed();
+
+            DoneSearch();
+            am.isDecision = true;
         }
     }
 
@@ -195,6 +217,12 @@ public class UnitTasks : MonoBehaviour
     [Task]
     public void Play()
     {
+        if (!start)
+        {
+            start = true;
+            doneP = false;
+        }
+
         if (isPlay)
         {
             var playPos = grid.NodeFromWorldPoint(im.GetPlayPos());
@@ -206,7 +234,7 @@ public class UnitTasks : MonoBehaviour
             isPlay = false;
             doneP = true;
 
-            // Wait();
+            Wait();
         }
 
         if (Vector3.Distance(transform.position, unit.target.position) < threshold || timer > 8)
@@ -218,8 +246,6 @@ public class UnitTasks : MonoBehaviour
             start = true;
 
             am.isDecision = true;
-
-            isPlay = false;
         }
     }
 
@@ -228,6 +254,7 @@ public class UnitTasks : MonoBehaviour
         doneP = false;
         isPlaying = false;
         start = true;
+        isPlay = false;
     }
     #endregion
 
